@@ -1,0 +1,128 @@
+Setting ip:
+network
+  ethernets:
+    ens18:
+      dhcp4: false
+      addresses: [10.10.10.63/24]
+      routes:
+        -  to: default
+          via: 10.10.10.254
+      nameservers: 
+        addresses: [10.10.10.254]
+version: 2
+
+Update && upgrade
+
+bind9 resolvconf dnsutils -y
+
+php8.3-cli fm ombak xml gede cuy(cli, fpm, opcache, mbstring, xml, gd, curl) 
+
+mariadb-server mariadb-client -y
+
+nginx -y
+
+rm /etc/nginx/sites-enabled/default
+
+cp -R /etc/bind/db.local /etc/bind/ukk-luqman.net
+cp -R /etc/bind/db.127 /etc/bind/ukk-luqman.net.reverse
+
+nano /etc/bind/ukk-luqman.net
+localhost=ukk-luqman.net.
+127.0.0.1=10.10.10.IPmu
+@3 =www.ukk-luqman.net.
+AAAA=CNAME
+::1=ukk-luqman.net.
+(@4= proxmox.ukk-luqman.net. , IN[dibawah CNAME] ,A ,IPproxmox)
+
+nano /etc/bind/ukk-luqman.net.reverse
+localhost=ukk-luqman.net.
+Tambahkan @ke-3
+@2 dan @3 diganti IPmu 
+@3 setelah PTR = www.ukk-luqman.net.
+(@4=IPproxmox, PTR proxmox.ukk-luqman.net.)
+
+nano /etc/bind/named.conf.default-zones
+//Forward zone
+zone =ukk-luqman.net
+file =/etc/bind/ukk-luqman.net
+//Reverse zone
+zone= 10.10.10.in-addr.arpa (10.168.192) 
+file= -------/ukk-luqman.net.reverse
+
+systemctl restart named.service
+
+nano /etc/resolv.conf
+nameserver 10.10.10.IPmu
+search ukk-luqman.net
+
+nslookup 10.10.10.IPmu
+nslookup ukk-luqman.net
+host ukk-luqman.net
+
+Ganti DNS
+
+nano /etc/nginx/sites-available/ukk-luqman.net.conf
+
+(File 'kodenegara' di lokal adalah isinya) 
+
+nginx -t
+
+ln -s /etc/nginx/sites-available/ukk-luqman.net.conf /etc/nginx/sites-enabled/
+
+systemctl reload nginx.service
+
+Masuk ke cd /var/www/html/
+wget https://wordpress.org/latest.tar.gz
+tar -xzvf latest.tar.gz
+rm latest.tar.gz
+
+mysql -u root
+create databse wordpress_db;
+grant all on wordpress_db.* to 'wp_user'@'localhost' identified by 'ukk-luqman' with grant option;
+flush privileges;
+
+nano /var/www/html/wordpress/wp-config.php
+DB_NAME=wprdpress_db
+DB_USER=wp_user
+DB_PASSWORD=ukk-luqman
+
+chown -R www-data:www-data /var/www/html/wordpress/
+
+nano /etc/nginx/sites-available/ukk-luqman.net.conf
+isi:
+server {
+    listen 80;
+    server_name www.ukk-luqman.net ukk-luqman.net;
+
+    root /var/www/html/wordpress;
+    index index.php index.html index.htm;
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~* \.(js|css|jpg|jpeg|png|gif|ico)$ {
+        expires max;
+        log_not_found off;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+
+nginx -t
+
+ln -s /etc/nginx/sites-available/ukk-luqman.net.conf /etc/nginx/sites-enabled/
+
+systemctl reload nginx.service
+
+(Cek OS windows= windows+r dxdiag, cek os ubuntu= cat /etc/os-release)
+(buka DNS prox pakai proxmox.ukk-luqman.net:8006)
