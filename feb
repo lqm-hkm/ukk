@@ -15,7 +15,7 @@ Update && upgrade
 
 bind9 resolvconf dnsutils -y
 
-php8.3-cli fm ombak xml gede cuy(cli, fpm, opcache, mbstring, xml, gd, curl) 
+php8.3-cli fm ombak xml gede cuy(cli, fpm, mysql, opcache, mbstring, xml, gd, curl) 
 
 mariadb-server mariadb-client -y
 
@@ -63,33 +63,6 @@ Ganti DNS
 
 nano /etc/nginx/sites-available/ukk-luqman.net.conf
 
-(File 'kodenegara' di lokal adalah isinya) 
-
-nginx -t
-
-ln -s /etc/nginx/sites-available/ukk-luqman.net.conf /etc/nginx/sites-enabled/
-
-systemctl reload nginx.service
-
-Masuk ke cd /var/www/html/
-wget https://wordpress.org/latest.tar.gz
-tar -xzvf latest.tar.gz
-rm latest.tar.gz
-
-mysql -u root
-create databse wordpress_db;
-grant all on wordpress_db.* to 'wp_user'@'localhost' identified by 'ukk-luqman' with grant option;
-flush privileges;
-
-nano /var/www/html/wordpress/wp-config.php
-DB_NAME=wprdpress_db
-DB_USER=wp_user
-DB_PASSWORD=ukk-luqman
-
-chown -R www-data:www-data /var/www/html/wordpress/
-
-nano /etc/nginx/sites-available/ukk-luqman.net.conf
-isi:
 server {
     listen 80;
     server_name www.ukk-luqman.net ukk-luqman.net;
@@ -119,6 +92,27 @@ server {
 }
 
 nginx -t
+
+ln -s /etc/nginx/sites-available/ukk-luqman.net.conf /etc/nginx/sites-enabled/
+
+systemctl reload nginx.service
+
+Masuk ke cd /var/www/html/
+wget https://wordpress.org/latest.tar.gz
+tar -xzvf latest.tar.gz
+rm latest.tar.gz
+
+mysql -u root
+create databse wordpress_db;
+grant all on wordpress_db.* to 'wp_user'@'localhost' identified by 'ukk-luqman' with grant option;
+flush privileges;
+
+nano /var/www/html/wordpress/wp-config.php
+DB_NAME=wprdpress_db
+DB_USER=wp_user
+DB_PASSWORD=ukk-luqman
+
+chown -R www-data:www-data /var/www/html/wordpress/
 
 ln -s /etc/nginx/sites-available/ukk-luqman.net.conf /etc/nginx/sites-enabled/
 
